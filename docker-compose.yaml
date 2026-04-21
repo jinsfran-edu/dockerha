@@ -1,0 +1,57 @@
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - /home/jorge/docker/ha/config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto
+    volumes:
+      - /home/jorge/docker/mosquitto/conf:/mosquitto/config
+      - /home/jorge/docker/mosquitto/data:/mosquitto/data
+      - /home/jorge/docker/mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - 1883:1883
+      - 9001:9001
+
+  frigate:
+    container_name: frigate
+    image: ghcr.io/blakeblackshear/frigate:stable
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /home/jorge/docker/frigate/config.yml:/config/config.yml
+      - /home/jorge/docker/frigate/media:/media/frigate
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    restart: unless-stopped
+    environment:
+      FRIGATE_MQTT_USER: ${FRIGATE_MQTT_USER}
+      FRIGATE_MQTT_PASSWORD: ${FRIGATE_MQTT_PASSWORD}
+      FRIGATE_RTSP_PASSWORD: ${FRIGATE_RTSP_PASSWORD}
+      FRIGATE_RTSP_USER: ${FRIGATE_RTSP_USER}
+      FRIGATE_TAPO_TOKEN: ${FRIGATE_TAPO_TOKEN}
+      FRIGATE_IP_CAMERA_PUERTA: ${FRIGATE_IP_CAMERA_PUERTA}
+      FRIGATE_IP_CAMERA_PATIO: ${FRIGATE_IP_CAMERA_PATIO}
+      HOST_IP: ${HOST_IP}
+      LIBVA_DRIVER_NAME: i965
+    network_mode: host
+    privileged: true
+    shm_size: '256mb'
+    devices:
+      - /dev/dri/renderD128

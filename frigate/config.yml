@@ -1,0 +1,253 @@
+mqtt:
+  host: "{HOST_IP}"
+  user: "{FRIGATE_MQTT_USER}"
+  password: "{FRIGATE_MQTT_PASSWORD}"
+
+detectors:
+  ov_0:
+    type: openvino
+    device: GPU
+
+model:
+  width: 300
+  height: 300
+  input_tensor: nhwc
+  input_pixel_format: bgr
+  path: /openvino-model/ssdlite_mobilenet_v2.xml
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+  attributes_map:
+    person:
+      - face
+
+audio:
+  enabled: true
+  max_not_heard: 30
+  min_volume: 1000
+  listen:
+    - bark
+    - fire_alarm
+    - scream
+    - speech
+    - yell
+  filters:
+    speech:
+      threshold: 0.8
+
+record:
+  enabled: true
+  expire_interval: 60
+  sync_recordings: false
+  alerts:
+    pre_capture: 10
+    post_capture: 10
+    retain:
+      days: 30
+      mode: motion
+  detections:
+    pre_capture: 10
+    post_capture: 10
+    retain:
+      days: 30
+      mode: motion
+
+snapshots:
+  enabled: true
+  clean_copy: true
+  retain:
+    default: 30
+    objects:
+      person: 15
+  quality: 80
+
+face_recognition:
+  enabled: true
+  model_size: small
+
+ffmpeg:
+  # TODO - This is the Hardware Acceleration for Intel-based CPUs (<10th Generation) via Quicksync
+  # check that this fits your use case - https://docs.frigate.video/configuration/hardware_acceleration
+  #hwaccel_args: -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 
+  #  -hwaccel_output_format yuv420p
+  hwaccel_args: preset-vaapi
+  input_args:
+    - -hwaccel
+    - vaapi
+    - -rtsp_transport
+    - tcp
+
+go2rtc:
+  streams:
+    puerta_cam:
+      - ffmpeg:rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@{FRIGATE_IP_CAMERA_PUERTA}:554/stream1#video=copy#audio=aac
+    puerta_cam_sub:
+      - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@{FRIGATE_IP_CAMERA_PUERTA}:554/stream2
+    patio_cam:
+      - ffmpeg:rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@{FRIGATE_IP_CAMERA_PATIO}:554/stream1#video=copy#audio=aac
+    patio_cam_sub:
+      - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@{FRIGATE_IP_CAMERA_PATIO}:554/stream2
+
+#Global Object Settings
+objects:
+  track:
+    - person
+  filters:
+    person:
+      min_area: 5000
+      max_area: 100000
+      threshold: 0.75
+timestamp_style:
+  # Optional: Position of the timestamp (default: shown below)
+  #           "tl" (top left), "tr" (top right), "bl" (bottom left), "br" (bottom right)
+  position: tr
+  # Optional: Format specifier conform to the Python package "datetime" (default: shown below)
+  #           Additional Examples:
+  #             german: "%d.%m.%Y %H:%M:%S"
+  format: '%d/%m/%Y %H:%M:%S'
+  # Optional: Color of font
+  color:
+    # All Required when color is specified (default: shown below)
+    red: 255
+    green: 255
+    blue: 255
+  # Optional: Line thickness of font (default: shown below)
+  thickness: 2
+  # Optional: Effect of lettering (default: shown below)
+  #           None (No effect),
+  #           "solid" (solid background in inverse color of font)
+  #           "shadow" (shadow for font)
+  effect: solid
+
+cameras:
+  # You can create multiple cameras, by adding additional blocks after this camera
+  # customise the camera name (camera_one) as you wish.
+  puerta:
+    ffmpeg:
+      output_args:
+        record: preset-record-generic-audio-copy
+      # I use two streams for Frigate. A lower quality one for detection and a higher quality for recording.
+      # Adjust as is necessary for your use case.
+      inputs:
+        # TODO - replace with your rtsp stream
+        - path: rtsp://127.0.0.1:8554/puerta_cam
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+            - audio
+            - detect
+        # TODO - replace with your rtsp stream
+        #- path: rtsp://127.0.0.1:8554/puerta_cam_sub
+        #  input_args: preset-rtsp-restream
+        #  roles:
+        #    - detect
+    live:
+      streams:
+        Main Stream: puerta_cam
+        Sub Stream: puerta_cam_sub
+#    onvif:
+#      host: {FRIGATE_IP_CAMERA_PUERTA}
+#      port: 2020
+#      user: {FRIGATE_RTSP_USER}
+#      password: {FRIGATE_RTSP_PASSWORD}
+    detect:
+      # TODO - ensure these values are correct for your detect stream. In my case, this is the low quality rtsp stream.
+      width: 2304
+      height: 1296
+      fps: 5
+      stationary:
+        interval: 50
+        threshold: 50
+    snapshots:
+      enabled: true
+    record:
+      enabled: true
+      # Keeps all recordings for two days
+      retain:
+        days: 30
+    zones:
+      frente_puerta:
+        coordinates: 0.237,0.265,0.824,0.255,0.813,0.71,0.492,0.734,0.272,0.74
+        loitering_time: 10
+        objects: person
+        inertia: 3
+      frente_interior:
+        coordinates: 0.282,0.99,0.883,0.994,0.817,0.724,0.093,0.751,0.004,0.978
+        loitering_time: 0
+        objects: person
+        inertia: 3
+    motion:
+      mask:
+        - 0,0.05,0.36,0.052,0.362,0,0,0
+        - 0.865,0,1,0,1,0.559,0.972,0.555,0.968,0.391,0.934,0.366,0.912,0.294,0.878,0.174
+    objects:
+      track:
+        - person
+        #- car
+        - bicycle
+        - motorcycle
+      filters:
+        person:
+          threshold: 0.7
+          min_area: 1800
+        #car:
+        #  threshold: 0.7
+    review:
+      alerts:
+        required_zones:
+          - frente_puerta
+          - frente_interior
+  patio:
+    ffmpeg:
+      # I use two streams for Frigate. A lower quality one for detection and a higher quality for recording.
+      # Adjust as is necessary for your use case.
+      inputs:
+        # TODO - replace with your rtsp stream
+        - path: rtsp://127.0.0.1:8554/patio_cam
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+            - audio
+        # TODO - replace with your rtsp stream
+        - path: rtsp://127.0.0.1:8554/patio_cam_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    detect:
+      # TODO - ensure these values are correct for your detect stream. In my case, this is the low quality rtsp stream.
+      width: 640
+      height: 360
+      fps: 5
+    snapshots:
+      enabled: true
+    record:
+      enabled: true
+      # Keeps all recordings for two days
+      retain:
+        days: 30
+    motion:
+      mask: 0.427,0.201,0,0.09,0,0,0.41,0
+      threshold: 45
+      contour_area: 20
+      improve_contrast: true
+    objects:
+      track:
+        - person
+        - dog
+        - cat
+      filters:
+        person:
+          threshold: 0.7
+          min_area: 1800
+    zones: {}
+
+detect:
+  enabled: true
+
+version: 0.16-0
+semantic_search:
+  enabled: true
+  model_size: small
+lpr:
+  enabled: false
+classification:
+  bird:
+    enabled: false

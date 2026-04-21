@@ -1,0 +1,31 @@
+# Env files
+.env
+.env.*
+!.env.example
+
+# General OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Frigate generated media and recordings
+frigate/media/
+
+# Home Assistant secrets and runtime artifacts
+ha/config/secrets.yaml
+ha/config/.storage/
+ha/config/deps/
+ha/config/tts/
+ha/config/*.log
+ha/config/*.log.*
+ha/config/*.db
+ha/config/*.db-*
+ha/config/.HA_VERSION
+ha/config/.ha_run.lock
+ha/config/blueprints/
+ha/config/custom_components/
+ha/config/www/
+
+# Mosquitto runtime data and credentials
+mosquitto/data/
+mosquitto/log/
+mosquitto/conf/password.txt
