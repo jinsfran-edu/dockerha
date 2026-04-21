@@ -1,18 +1,4 @@
 services:
-  homeassistant:
-    container_name: homeassistant
-    image: "ghcr.io/home-assistant/home-assistant:stable"
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    volumes:
-      - ./ha/config:/config
-      - /etc/localtime:/etc/localtime:ro
-      - /run/dbus:/run/dbus:ro
-    restart: unless-stopped
-    privileged: true
-    network_mode: host
-
   mosquitto:
     container_name: mosquitto
     image: eclipse-mosquitto
@@ -50,8 +36,31 @@ services:
       FRIGATE_IP_CAMERA_PATIO: ${FRIGATE_IP_CAMERA_PATIO}
       HOST_IP: ${HOST_IP}
       LIBVA_DRIVER_NAME: i965
-    network_mode: host
+    ports:
+      - 5000:5000
+      - 8544:8544
+      - 8555:8555/tcp
+      - 8555:8555/udp
     privileged: true
     shm_size: '256mb'
     devices:
       - /dev/dri/renderD128
+    depends_on:
+      - mosquitto
+  
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    depends_on:
+      - mosquitto
+      - frigate
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ./ha/config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host

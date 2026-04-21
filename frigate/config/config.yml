@@ -206,16 +206,21 @@ cameras:
           roles:
             - record
             - audio
-        # TODO - replace with your rtsp stream
-        - path: rtsp://127.0.0.1:8554/patio_cam_sub
-          input_args: preset-rtsp-restream
-          roles:
             - detect
+        # TODO - replace with your rtsp stream
+        #- path: rtsp://127.0.0.1:8554/patio_cam_sub
+        #  input_args: preset-rtsp-restream
+        #  roles:
+        #    - detect
     detect:
       # TODO - ensure these values are correct for your detect stream. In my case, this is the low quality rtsp stream.
-      width: 640
-      height: 360
+      width: 2304
+      height: 1296
       fps: 5
+    live:
+      streams:
+        Main Stream: patio_cam
+        Sub Stream: patio_cam_sub      
     snapshots:
       enabled: true
     record:
