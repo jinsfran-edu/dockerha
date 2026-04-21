@@ -9,6 +9,11 @@ Thumbs.db
 
 # Frigate generated media and recordings
 frigate/media/
+frigate/config/model_cache
+frigate/config/*.db
+frigate/config/*.db-shm
+frigate/config/*.db-wal
+frigate/config/.*
 
 # Home Assistant secrets and runtime artifacts
 ha/config/secrets.yaml
