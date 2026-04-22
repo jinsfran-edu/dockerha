@@ -34,3 +34,5 @@ ha/config/www/
 mosquitto/data/
 mosquitto/log/
 mosquitto/conf/password.txt
+ha/config/automations.yaml
+ha/config/themes/

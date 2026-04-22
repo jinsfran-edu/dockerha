@@ -29,6 +29,7 @@ services:
     environment:
       FRIGATE_MQTT_USER: ${FRIGATE_MQTT_USER}
       FRIGATE_MQTT_PASSWORD: ${FRIGATE_MQTT_PASSWORD}
+      FRIGATE_MQTT_HOST: ${FRIGATE_MQTT_HOST}
       FRIGATE_RTSP_PASSWORD: ${FRIGATE_RTSP_PASSWORD}
       FRIGATE_RTSP_USER: ${FRIGATE_RTSP_USER}
       FRIGATE_TAPO_TOKEN: ${FRIGATE_TAPO_TOKEN}
@@ -38,9 +39,7 @@ services:
       LIBVA_DRIVER_NAME: i965
     ports:
       - 5000:5000
-      - 8544:8544
-      - 8555:8555/tcp
-      - 8555:8555/udp
+      - 1935:1935
     privileged: true
     shm_size: '256mb'
     devices:
