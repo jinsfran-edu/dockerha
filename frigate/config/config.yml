@@ -1,7 +1,7 @@
 mqtt:
-  host: "{HOST_IP}"
-  user: "{FRIGATE_MQTT_USER}"
-  password: "{FRIGATE_MQTT_PASSWORD}"
+  host: '{HOST_IP}'
+  user: '{FRIGATE_MQTT_USER}'
+  password: '{FRIGATE_MQTT_PASSWORD}'
 
 detectors:
   ov_0:
