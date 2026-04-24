@@ -51,9 +51,9 @@ Broker MQTT para comunicación entre servicios.
 │       ├── configuration.yaml
 │       ├── scripts.yaml
 │       ├── scenes.yaml
-│       ├── secrets.yaml
 └── mosquitto/
     ├── conf/               # Configuración del broker
+│       ├── configuration.conf
 ```
 
 ## Variables de entorno
