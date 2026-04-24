@@ -49,7 +49,6 @@ Broker MQTT para comunicación entre servicios.
 ├── ha/
 │   └── config/             # Configuración de Home Assistant
 │       ├── configuration.yaml
-│       ├── automations.yaml
 │       ├── scripts.yaml
 │       ├── scenes.yaml
 │       ├── secrets.yaml
@@ -69,7 +68,6 @@ FRIGATE_RTSP_PASSWORD=<contraseña_rtsp>
 FRIGATE_RTSP_USER=<usuario_rtsp>
 FRIGATE_IP_CAMERA_PUERTA=<ip_camara_puerta>
 FRIGATE_IP_CAMERA_PATIO=<ip_camara_patio>
-FRIGATE_TAPO_TOKEN=<token_tapo>
 HOST_IP=<ip_del_host>
 ```
 

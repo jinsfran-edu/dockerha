@@ -1,13 +1,15 @@
 mqtt:
-  host: 192.168.0.110
+  host: '{FRIGATE_MQTT_HOST}'
   user: '{FRIGATE_MQTT_USER}'
   password: '{FRIGATE_MQTT_PASSWORD}'
 
+# Optional: Detectors configuration. Defaults to a single CPU detector
 detectors:
   ov_0:
     type: openvino
     device: GPU
 
+# Optional: model modifications
 model:
   width: 300
   height: 300
@@ -19,6 +21,8 @@ model:
     person:
       - face
 
+# Optional: Audio Events Configuration
+# NOTE: Can be overridden at the camera level
 audio:
   enabled: true
   max_not_heard: 30
@@ -33,6 +37,8 @@ audio:
     speech:
       threshold: 0.8
 
+# Optional: Record configuration
+# NOTE: Can be overridden at the camera level
 record:
   enabled: true
   expire_interval: 60
@@ -50,6 +56,8 @@ record:
       days: 30
       mode: motion
 
+# Optional: Configuration for the jpg snapshots written to the clips directory for each tracked object
+# NOTE: Can be overridden at the camera level
 snapshots:
   enabled: true
   clean_copy: true
@@ -63,11 +71,9 @@ face_recognition:
   enabled: true
   model_size: small
 
+# Optional: ffmpeg configuration
+# More information about presets at https://docs.frigate.video/configuration/ffmpeg_presets
 ffmpeg:
-  # TODO - This is the Hardware Acceleration for Intel-based CPUs (<10th Generation) via Quicksync
-  # check that this fits your use case - https://docs.frigate.video/configuration/hardware_acceleration
-  #hwaccel_args: -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 
-  #  -hwaccel_output_format yuv420p
   hwaccel_args: preset-vaapi
   input_args:
     - -hwaccel
@@ -75,6 +81,10 @@ ffmpeg:
     - -rtsp_transport
     - tcp
 
+# Optional: Restream configuration
+# Uses https://github.com/AlexxIT/go2rtc (v1.9.10)
+# NOTE: The default go2rtc API port (1984) must be used,
+#       changing this port for the integrated go2rtc instance is not supported.
 go2rtc:
   streams:
     puerta_cam:
@@ -86,7 +96,8 @@ go2rtc:
     patio_cam_sub:
       - rtsp://{FRIGATE_RTSP_USER}:{FRIGATE_RTSP_PASSWORD}@{FRIGATE_IP_CAMERA_PATIO}:554/stream2
 
-#Global Object Settings
+# Optional: Object configuration
+# NOTE: Can be overridden at the camera level
 objects:
   track:
     - person
@@ -95,6 +106,9 @@ objects:
       min_area: 5000
       max_area: 100000
       threshold: 0.75
+
+# Optional: in-feed timestamp style configuration
+# NOTE: Can be overridden at the camera level
 timestamp_style:
   # Optional: Position of the timestamp (default: shown below)
   #           "tl" (top left), "tr" (top right), "bl" (bottom left), "br" (bottom right)
@@ -117,6 +131,7 @@ timestamp_style:
   #           "shadow" (shadow for font)
   effect: solid
 
+# Required
 cameras:
   # You can create multiple cameras, by adding additional blocks after this camera
   # customise the camera name (camera_one) as you wish.
@@ -124,32 +139,18 @@ cameras:
     ffmpeg:
       output_args:
         record: preset-record-generic-audio-copy
-      # I use two streams for Frigate. A lower quality one for detection and a higher quality for recording.
-      # Adjust as is necessary for your use case.
       inputs:
-        # TODO - replace with your rtsp stream
         - path: rtsp://127.0.0.1:8554/puerta_cam
           input_args: preset-rtsp-restream
           roles:
             - record
             - audio
             - detect
-        # TODO - replace with your rtsp stream
-        #- path: rtsp://127.0.0.1:8554/puerta_cam_sub
-        #  input_args: preset-rtsp-restream
-        #  roles:
-        #    - detect
     live:
       streams:
         Main Stream: puerta_cam
         Sub Stream: puerta_cam_sub
-#    onvif:
-#      host: {FRIGATE_IP_CAMERA_PUERTA}
-#      port: 2020
-#      user: {FRIGATE_RTSP_USER}
-#      password: {FRIGATE_RTSP_PASSWORD}
     detect:
-      # TODO - ensure these values are correct for your detect stream. In my case, this is the low quality rtsp stream.
       width: 2304
       height: 1296
       fps: 5
@@ -160,7 +161,6 @@ cameras:
       enabled: true
     record:
       enabled: true
-      # Keeps all recordings for two days
       retain:
         days: 30
     zones:
@@ -181,15 +181,12 @@ cameras:
     objects:
       track:
         - person
-        #- car
         - bicycle
         - motorcycle
       filters:
         person:
           threshold: 0.7
           min_area: 1800
-        #car:
-        #  threshold: 0.7
     review:
       alerts:
         required_zones:
@@ -197,22 +194,17 @@ cameras:
           - frente_interior
   patio:
     ffmpeg:
-      # I use two streams for Frigate. A lower quality one for detection and a higher quality for recording.
-      # Adjust as is necessary for your use case.
       inputs:
-        # TODO - replace with your rtsp stream
         - path: rtsp://127.0.0.1:8554/patio_cam
           input_args: preset-rtsp-restream
           roles:
             - record
             - audio
-        # TODO - replace with your rtsp stream
         - path: rtsp://127.0.0.1:8554/patio_cam_sub
           input_args: preset-rtsp-restream
           roles:
             - detect
     detect:
-      # TODO - ensure these values are correct for your detect stream. In my case, this is the low quality rtsp stream.
       width: 640
       height: 360
       fps: 5
@@ -224,7 +216,6 @@ cameras:
       enabled: true
     record:
       enabled: true
-      # Keeps all recordings for two days
       retain:
         days: 30
     motion:
